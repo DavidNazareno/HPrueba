@@ -1,7 +1,7 @@
 # h_prueba
 ### Instalacion
 ```bash
-git clone
+git clone https://github.com/DavidNazareno/HPrueba.git
 ```
 ### Uso
 
