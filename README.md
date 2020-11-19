@@ -4,8 +4,9 @@
 git clone https://github.com/DavidNazareno/HPrueba.git
 ```
 ### Uso
-
 <p>Para ejecutar acceder desde la terminal y escribir </p> 
+### Ejecutar
+
 ```bash 
 go run ./main.go
 ```
@@ -41,6 +42,7 @@ type Client {
 
 type Query {
   getRequest(token: String!): Request!
+### Ejecutar
   getTechOrders(token: String!): [Request]
 }
 
