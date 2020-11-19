@@ -5,7 +5,7 @@ git clone https://github.com/DavidNazareno/HPrueba.git
 ```
 ### Uso
 
-<p>Para ejecutar acceder desde la terminal y escribir go run ./main.go</p>
+<p>Para ejecutar acceder desde la terminal y escribir </p> ```bash go run ./main.go ```
 
  <hr/>
 
