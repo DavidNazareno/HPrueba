@@ -5,6 +5,10 @@ git clone https://github.com/DavidNazareno/HPrueba.git
 ```
 ### Uso
 <p>Para ejecutar acceder desde la terminal y escribir </p> 
+
+# Nota:
+Cuando se hace una mutacion GenerateRequest retonar url, esa url abre un html statico sencillo donde le muestra la informacion de la solicitud y su tecnico.
+
 ### Ejecutar
 
 ```bash 
