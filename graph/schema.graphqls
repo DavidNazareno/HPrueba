@@ -1,0 +1,45 @@
+
+type Query{
+    getRequest(token: String!): Request!
+    getTechOrders(token:String!): [Request]
+    
+  
+}
+
+type Mutation{
+    AddClient: Client!
+    addRequest(ticket: NewRequest!): String!  
+    GenerateRequest(ticket:String!):String!
+}
+
+type Client{
+    id:ID!
+    ticket: String!
+}
+
+type Request{
+    token:String!
+    clients:Client!
+    status:Int!
+    score: Int
+}
+
+type Technician{
+    id:ID!
+    name: String!
+}
+
+type Order{
+    id:ID!
+    technician:Technician!
+    token: String!
+}
+
+
+input NewRequest{
+  token:String!
+  client:Int!
+  status:Int!
+  score:Int!
+}
+
