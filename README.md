@@ -1,12 +1,15 @@
 # h_prueba
- 
-####Uso
+### Instalacion
+```bash
+git clone
+```
+### Uso
 
 <p>Para ejecutar acceder desde la terminal y escribir go run ./main.go</p>
 
  <hr/>
 
-####Crear Ticket
+### Crear Ticket
 ```graphql
 mutation{
   AddClient{
@@ -15,7 +18,7 @@ mutation{
   }
 }
 ```
-####Generar Solicitud
+### Generar Solicitud
 ```graphql
 mutation {
   GenerateRequest(ticket: "Agregar Ticket para validar cliente y crear solicitud")
@@ -24,7 +27,7 @@ mutation {
 ```
 
 
-####Schemas
+### Schemas
 
 ```graphql
 
