@@ -34,9 +34,10 @@ mutation {
 
 ```
 
-### Database Diagram
+### Database 
 Digrama de base de datos, con relacions corresondientes para la funcionalidad de la app
 
+<img src="https://user-images.githubusercontent.com/20806165/99932760-0cffd780-2d27-11eb-85e2-a5c2988d52b2.png" />
 
 ### Querys
 
