@@ -1,4 +1,4 @@
-# h_prueba
+# H_PRUEBA
 ### Instalacion
 ```bash
 git clone https://github.com/DavidNazareno/HPrueba.git
