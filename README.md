@@ -40,8 +40,8 @@ Digrama de base de datos, con relacions corresondientes para la funcionalidad de
 
 ### Querys
 
--getRequest() recibe como parametro el token generado, y retorna el Objecto Request desde la tabla requests en la base de datos.
--getTechOrders() recibe como parametro el id del tecnico y retorna la cantidad de  ordenes que tiene el tecnico en ese momento.
+- getRequest() recibe como parametro el token generado, y retorna el Objecto Request desde la tabla requests en la base de datos.
+- getTechOrders() recibe como parametro el id del tecnico y retorna la cantidad de  ordenes que tiene el tecnico en ese momento.
 
 ```graphql
 
