@@ -34,9 +34,15 @@ mutation {
 
 ```
 
+### Database Diagram
+Digrama de base de datos, con relacions corresondientes para la funcionalidad de la app
+
 
 ### Schemas
 
+
+# Client 
+Objeto client para gestionar los ticket y validacion de cada cliente que haga una solictud al servicio
 ```graphql
 
 type Client {
@@ -44,31 +50,22 @@ type Client {
   ticket: String!
 }
 
-type Query {
-  getRequest(token: String!): Request!
-### Ejecutar
-  getTechOrders(token: String!): [Request]
-}
-
-type Mutation {
-  AddClient: Client!
-  addRequest(ticket: NewRequest!): String!
-  GenerateRequest(ticket: String!): String!
-}
-
-input NewRequest {
-  token: String!
-  client: Int!
-  status: Int!
-  score: Int!
-}
+```
+# Order 
+Objeto Order para construir las ordenes y relacionarla a la tabla technician
+```graphql
 
 type Order {
   id: ID!
   technician: Technician!
-  token: String!
+
 }
 
+```
+# Request 
+Objeto Order para construir las ordenes y relacionarla a la tabla technician
+
+```graphql
 type Request {
   token: String!
   clients: Client!
@@ -76,8 +73,4 @@ type Request {
   score: Int
 }
 
-type Technician {
-  id: ID!
-  name: String!
-}
 ```
