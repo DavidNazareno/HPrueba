@@ -1,9 +1,6 @@
-
 type Query{
     getRequest(token: String!): Request!
-    getTechOrders(token:String!): [Request]
-    
-  
+    getTechOrders(id:String!): String!
 }
 
 type Mutation{
@@ -32,8 +29,14 @@ type Technician{
 type Order{
     id:ID!
     technician:Technician!
-    token: String!
+  
 }
+
+type TechOrders{
+    name: String!
+    count: Int!
+}
+
 
 
 input NewRequest{

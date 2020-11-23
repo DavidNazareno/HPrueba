@@ -6,7 +6,6 @@ package graph
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
 
 	"github.com/DavidNazareno/h_prueba/config"
@@ -40,8 +39,6 @@ func (r *mutationResolver) GenerateRequest(ctx context.Context, ticket string) (
 		return "", err
 	}
 
-	log.Println(cli.ID)
-
 	randomTech, err := services.GetRandomTech()
 
 	if err != nil {
@@ -63,11 +60,22 @@ func (r *mutationResolver) GenerateRequest(ctx context.Context, ticket string) (
 }
 
 func (r *queryResolver) GetRequest(ctx context.Context, token string) (*model.Request, error) {
-	panic(fmt.Errorf("not implemented"))
+	result, err := services.GetRequest(token)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.Request{Token: result.Token, Status: result.Status, Score: &result.Score}, nil
 }
 
-func (r *queryResolver) GetTechOrders(ctx context.Context, token string) ([]*model.Request, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *queryResolver) GetTechOrders(ctx context.Context, id string) (string, error) {
+	result, err := services.GetTechOrder(id)
+
+	if err != nil {
+		return "", err
+	}
+	return strconv.FormatInt(*result, 10), nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

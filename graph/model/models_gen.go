@@ -17,7 +17,6 @@ type NewRequest struct {
 type Order struct {
 	ID         string      `json:"id"`
 	Technician *Technician `json:"technician"`
-	Token      string      `json:"token"`
 }
 
 type Request struct {
@@ -25,6 +24,11 @@ type Request struct {
 	Clients *Client `json:"clients"`
 	Status  int     `json:"status"`
 	Score   *int    `json:"score"`
+}
+
+type TechOrders struct {
+	Name  string `json:"name"`
+	Count int    `json:"count"`
 }
 
 type Technician struct {

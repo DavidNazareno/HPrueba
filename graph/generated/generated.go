@@ -57,12 +57,11 @@ type ComplexityRoot struct {
 	Order struct {
 		ID         func(childComplexity int) int
 		Technician func(childComplexity int) int
-		Token      func(childComplexity int) int
 	}
 
 	Query struct {
 		GetRequest    func(childComplexity int, token string) int
-		GetTechOrders func(childComplexity int, token string) int
+		GetTechOrders func(childComplexity int, id string) int
 	}
 
 	Request struct {
@@ -70,6 +69,11 @@ type ComplexityRoot struct {
 		Score   func(childComplexity int) int
 		Status  func(childComplexity int) int
 		Token   func(childComplexity int) int
+	}
+
+	TechOrders struct {
+		Count func(childComplexity int) int
+		Name  func(childComplexity int) int
 	}
 
 	Technician struct {
@@ -85,7 +89,7 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	GetRequest(ctx context.Context, token string) (*model.Request, error)
-	GetTechOrders(ctx context.Context, token string) ([]*model.Request, error)
+	GetTechOrders(ctx context.Context, id string) (string, error)
 }
 
 type executableSchema struct {
@@ -162,13 +166,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Order.Technician(childComplexity), true
 
-	case "Order.token":
-		if e.complexity.Order.Token == nil {
-			break
-		}
-
-		return e.complexity.Order.Token(childComplexity), true
-
 	case "Query.getRequest":
 		if e.complexity.Query.GetRequest == nil {
 			break
@@ -191,7 +188,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetTechOrders(childComplexity, args["token"].(string)), true
+		return e.complexity.Query.GetTechOrders(childComplexity, args["id"].(string)), true
 
 	case "Request.clients":
 		if e.complexity.Request.Clients == nil {
@@ -220,6 +217,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Request.Token(childComplexity), true
+
+	case "TechOrders.count":
+		if e.complexity.TechOrders.Count == nil {
+			break
+		}
+
+		return e.complexity.TechOrders.Count(childComplexity), true
+
+	case "TechOrders.name":
+		if e.complexity.TechOrders.Name == nil {
+			break
+		}
+
+		return e.complexity.TechOrders.Name(childComplexity), true
 
 	case "Technician.id":
 		if e.complexity.Technician.ID == nil {
@@ -299,12 +310,9 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "graph/schema.graphqls", Input: `
-type Query{
+	{Name: "graph/schema.graphqls", Input: `type Query{
     getRequest(token: String!): Request!
-    getTechOrders(token:String!): [Request]
-    
-  
+    getTechOrders(id:String!): String!
 }
 
 type Mutation{
@@ -333,8 +341,14 @@ type Technician{
 type Order{
     id:ID!
     technician:Technician!
-    token: String!
+  
 }
+
+type TechOrders{
+    name: String!
+    count: Int!
+}
+
 
 
 input NewRequest{
@@ -416,14 +430,14 @@ func (ec *executionContext) field_Query_getTechOrders_args(ctx context.Context, 
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["token"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("token"))
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["token"] = arg0
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -724,41 +738,6 @@ func (ec *executionContext) _Order_technician(ctx context.Context, field graphql
 	return ec.marshalNTechnician2ᚖgithubᚗcomᚋDavidNazarenoᚋh_pruebaᚋgraphᚋmodelᚐTechnician(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Order_token(ctx context.Context, field graphql.CollectedField, obj *model.Order) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Order",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Token, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Query_getRequest(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -826,18 +805,21 @@ func (ec *executionContext) _Query_getTechOrders(ctx context.Context, field grap
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetTechOrders(rctx, args["token"].(string))
+		return ec.resolvers.Query().GetTechOrders(rctx, args["id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Request)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalORequest2ᚕᚖgithubᚗcomᚋDavidNazarenoᚋh_pruebaᚋgraphᚋmodelᚐRequest(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1046,6 +1028,76 @@ func (ec *executionContext) _Request_score(ctx context.Context, field graphql.Co
 	res := resTmp.(*int)
 	fc.Result = res
 	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TechOrders_name(ctx context.Context, field graphql.CollectedField, obj *model.TechOrders) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "TechOrders",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TechOrders_count(ctx context.Context, field graphql.CollectedField, obj *model.TechOrders) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "TechOrders",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Technician_id(ctx context.Context, field graphql.CollectedField, obj *model.Technician) (ret graphql.Marshaler) {
@@ -2351,11 +2403,6 @@ func (ec *executionContext) _Order(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "token":
-			out.Values[i] = ec._Order_token(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -2405,6 +2452,9 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getTechOrders(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			})
 		case "__type":
@@ -2450,6 +2500,38 @@ func (ec *executionContext) _Request(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "score":
 			out.Values[i] = ec._Request_score(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var techOrdersImplementors = []string{"TechOrders"}
+
+func (ec *executionContext) _TechOrders(ctx context.Context, sel ast.SelectionSet, obj *model.TechOrders) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, techOrdersImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TechOrders")
+		case "name":
+			out.Values[i] = ec._TechOrders_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "count":
+			out.Values[i] = ec._TechOrders_count(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3107,53 +3189,6 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 		return graphql.Null
 	}
 	return graphql.MarshalInt(*v)
-}
-
-func (ec *executionContext) marshalORequest2ᚕᚖgithubᚗcomᚋDavidNazarenoᚋh_pruebaᚋgraphᚋmodelᚐRequest(ctx context.Context, sel ast.SelectionSet, v []*model.Request) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalORequest2ᚖgithubᚗcomᚋDavidNazarenoᚋh_pruebaᚋgraphᚋmodelᚐRequest(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
-func (ec *executionContext) marshalORequest2ᚖgithubᚗcomᚋDavidNazarenoᚋh_pruebaᚋgraphᚋmodelᚐRequest(ctx context.Context, sel ast.SelectionSet, v *model.Request) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Request(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {
